@@ -1,0 +1,26 @@
+h1. ZooKeeper Smoketest
+
+*Author: "Patrick Hunt":http://people.apache.org/~phunt/* "(twitter)":http://twitter.com/phunt
+
+"ZooKeeper is a high-performance coordination service for distributed applications. It exposes common services - such as naming, configuration management, synchronization, and group services - in a simple interface so you don't have to write them from scratch. You can use it off-the-shelf to implement consensus, group management, leader election, and presence protocols. And you can build on it for your own, specific needs."
+"http://hadoop.apache.org/zookeeper/":http://hadoop.apache.org/zookeeper/
+
+zk-smoketest.py provides a simple smoketest client for a ZooKeeper ensemble. Useful for verifying new, updated, existing installations.
+
+h2. Overview
+
+This tool uses the ZooKeeper python binding to exercise the server. In general the script does the following:
+
+# create a root znode for the test, i.e. /zk-smoketest
+# attach a zk session to each server in the ensemble (the --servers list)
+# each client will create ephemeral znodes and attach watches on znodes of the other clients
+# each client will then delete the the ephemeral znodes it owns, all clients verify watches are triggered properly
+# client then cleans up, removing /zk-smoketest znode
+
+h2. Usage
+
+<code>
+PYTHONPATH=lib.linux-i686-2.6 LD_LIBRARY_PATH=lib.linux-i686-2.6 ./zk-smoketest.py --servers "host:port(,host:port)*"
+</code>
+
+*Note*: you may need to compile the zookeeper python binding, this project includes only the linux binaries.
