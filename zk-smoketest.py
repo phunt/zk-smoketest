@@ -81,6 +81,7 @@ class ZKClient(object):
     def async(self, path = "/"):
         print("ASYNC")
         zookeeper.async(self.handle, path)
+        print("ASYNCDONE")
         #time.sleep(1)
 
 class SmokeError(Exception):
