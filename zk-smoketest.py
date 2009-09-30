@@ -130,6 +130,7 @@ if __name__ == '__main__':
 
         def __call__(self, handle, typ, state, path):
             self.count += 1
+            print("got watch in watcher, count %d" % (self.count))
 
     watchers = []
     for i, server in enumerate(servers):
