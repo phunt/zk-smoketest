@@ -79,16 +79,15 @@ class ZKClient(object):
         return zookeeper.get_children(self.handle, path, watcher)
 
     def async(self, path = "/"):
-        print("ASYNC handle %d" % (self.handle))
         zookeeper.async(self.handle, path)
-        print("ASYNCDONE handle %d" % (self.handle))
-        #time.sleep(1)
+
 
 class SmokeError(Exception):
     def __init__(self, value):
         self.value = value
     def __str__(self):
         return repr(self.value)
+
 
 if __name__ == '__main__':
     servers = options.servers.split(",")
@@ -128,6 +127,15 @@ if __name__ == '__main__':
     class Watcher(object):
         def __init__(self):
             self.count = 0
+            
+        def waitForExpected(self, count, maxwait):
+            waited = 0
+            while (waited < maxwait):
+                if self.count >= count:
+                    return self.count
+                time.sleep(1.0);
+                waited += 1
+            return self.count
 
         def __call__(self, handle, typ, state, path):
             self.count += 1
@@ -154,7 +162,7 @@ if __name__ == '__main__':
     for i, watcher in enumerate(watchers):
         # ensure this server is up to date with leader
         sessions[i].async()
-        if watcher.count != len(sessions):
+        if watcher.waitForExpected(len(sessions), TIMEOUT) != len(sessions):
             raise SmokeError("server %s wrong number of watches: %d" %
                              (server, watcher.count))
 
@@ -170,3 +178,5 @@ if __name__ == '__main__':
     zk.delete(rootpath)
 
     zk.close()
+
+    print("Smoke test successful")
