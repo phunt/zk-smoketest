@@ -79,9 +79,9 @@ class ZKClient(object):
         return zookeeper.get_children(self.handle, path, watcher)
 
     def async(self, path = "/"):
-        print("ASYNC")
+        print("ASYNC handle %d" % (self.handle))
         zookeeper.async(self.handle, path)
-        print("ASYNCDONE")
+        print("ASYNCDONE handle %d" % (self.handle))
         #time.sleep(1)
 
 class SmokeError(Exception):
@@ -166,7 +166,7 @@ if __name__ == '__main__':
     # cleanup root node
     zk = ZKClient(servers[-1], TIMEOUT)
     # ensure this server is up to date with leader (ephems)
-    sessions[i].async()
+    zk.async()
     zk.delete(rootpath)
 
     zk.close()
