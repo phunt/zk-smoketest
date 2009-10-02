@@ -24,11 +24,11 @@ parser = OptionParser(usage=usage)
 parser.add_option("", "--servers", dest="servers",
                   default="localhost:2181", help="comma separated list of host:port")
 
-TIMEOUT = 10.0
-
 (options, args) = parser.parse_args()
 
 zookeeper.set_log_stream(open("cli_log.txt","w"))
+
+TIMEOUT = 10.0
 
 ZOO_OPEN_ACL_UNSAFE = {"perms":0x1f, "scheme":"world", "id" :"anyone"}
 
@@ -39,12 +39,12 @@ class ZKClient(object):
         self.handle = -1
 
         self.conn_cv.acquire()
-        print("Connecting to " + servers)
+        print("Connecting to %s" % (servers))
         self.handle = zookeeper.init(servers, self.connection_watcher, 30000)
         self.conn_cv.wait(timeout)
         self.conn_cv.release()
 
-        print "Connected, handle is ", self.handle
+        print("Connected, handle is %d" % (self.handle))
 
     def connection_watcher(self, h, type, state, path):
         self.handle = h
@@ -80,6 +80,31 @@ class ZKClient(object):
 
     def async(self, path = "/"):
         zookeeper.async(self.handle, path)
+
+"""Callable watcher that counts the number of notifications"""
+class CountingWatcher(object):
+    def __init__(self):
+        self.count = 0
+
+    def waitForExpected(self, count, maxwait):
+        """Wait up to maxwait seconds for the specified count,
+        return the count whether or not maxwait reached.
+
+        Arguments:
+        - `count`: expected count
+        - `maxwait`: max seconds to wait
+        """
+        waited = 0
+        while (waited < maxwait):
+            if self.count >= count:
+                return self.count
+            time.sleep(1.0);
+            waited += 1
+        return self.count
+
+    def __call__(self, handle, typ, state, path):
+        self.count += 1
+        print("got watch in watcher, count %d" % (self.count))
 
 
 class SmokeError(Exception):
@@ -124,23 +149,6 @@ if __name__ == '__main__':
         ## create child znode
         sessions[i].create(child_path(i), "", zookeeper.EPHEMERAL)
 
-    class Watcher(object):
-        def __init__(self):
-            self.count = 0
-            
-        def waitForExpected(self, count, maxwait):
-            waited = 0
-            while (waited < maxwait):
-                if self.count >= count:
-                    return self.count
-                time.sleep(1.0);
-                waited += 1
-            return self.count
-
-        def __call__(self, handle, typ, state, path):
-            self.count += 1
-            print("got watch in watcher, count %d" % (self.count))
-
     watchers = []
     for i, server in enumerate(servers):
         # ensure this server is up to date with leader
@@ -151,8 +159,9 @@ if __name__ == '__main__':
             raise SmokeError("server %s wrong number of children: %d" %
                              (server, len(children)))
 
-        watchers.append(Watcher())
-        sessions[i].get(child_path(i), watchers[i])
+        watchers.append(CountingWatcher())
+        for child in children:
+            sessions[i].get(rootpath + "/" + child, watchers[i])
 
     # trigger watches
     for i, server in enumerate(servers):
