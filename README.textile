@@ -1,11 +1,16 @@
 h1. ZooKeeper Smoketest
 
-*Author: "Patrick Hunt":http://people.apache.org/~phunt/* "(twitter)":http://twitter.com/phunt
+*Author: "Patrick Hunt":http://people.apache.org/~phunt/* (follow me on "twitter":http://twitter.com/phunt)
 
-"ZooKeeper is a high-performance coordination service for distributed applications. It exposes common services - such as naming, configuration management, synchronization, and group services - in a simple interface so you don't have to write them from scratch. You can use it off-the-shelf to implement consensus, group management, leader election, and presence protocols. And you can build on it for your own, specific needs."
-"http://hadoop.apache.org/zookeeper/":http://hadoop.apache.org/zookeeper/
+h2. Summary
 
-zk-smoketest.py provides a simple smoketest client for a ZooKeeper ensemble. Useful for verifying new, updated, existing installations.
+"This project":http://github.com/phunt/zk-smoketest provides a simple smoketest client for a ZooKeeper ensemble. Useful for verifying new, updated, existing installations.
+
+h3. What's Apache ZooKeeper?
+
+From the "official site":http://hadoop.apache.org/zookeeper/: "ZooKeeper is a high-performance coordination service for distributed applications."
+
+It exposes common services - such as naming, configuration management, synchronization, and group services - in a simple interface so you don't have to write them from scratch. You can use it off-the-shelf to implement consensus, group management, leader election, and presence protocols. And you can build on it for your own, specific needs. 
 
 h2. Overview
 

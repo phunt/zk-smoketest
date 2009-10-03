@@ -104,8 +104,20 @@ class CountingWatcher(object):
 
     def __call__(self, handle, typ, state, path):
         self.count += 1
-        print("got watch in watcher, count %d" % (self.count))
+        print("handle %d got watch for %s in watcher, count %d" %
+              (handle, path, self.count))
 
+"""Callable watcher that counts the number of notifications
+and verifies that the paths are sequential"""
+class SequentialCountingWatcher(CountingWatcher):
+    def __init__(self, child_path):
+        CountingWatcher.__init__(self)
+        self.child_path = child_path
+
+    def __call__(self, handle, typ, state, path):
+        if not self.child_path(self.count) == path:
+            raise SmokeError("handle %d invalid path order %s" % (handle, path))
+        CountingWatcher.__call__(self, handle, typ, state, path)
 
 class SmokeError(Exception):
     def __init__(self, value):
@@ -159,7 +171,7 @@ if __name__ == '__main__':
             raise SmokeError("server %s wrong number of children: %d" %
                              (server, len(children)))
 
-        watchers.append(CountingWatcher())
+        watchers.append(SequentialCountingWatcher(child_path))
         for child in children:
             sessions[i].get(rootpath + "/" + child, watchers[i])
 
