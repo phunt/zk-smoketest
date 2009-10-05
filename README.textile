@@ -10,7 +10,7 @@ h3. What's Apache ZooKeeper?
 
 From the "official site":http://hadoop.apache.org/zookeeper/: "ZooKeeper is a high-performance coordination service for distributed applications."
 
-It exposes common services - such as naming, configuration management, synchronization, and group services - in a simple interface so you don't have to write them from scratch. You can use it off-the-shelf to implement consensus, group management, leader election, and presence protocols. And you can build on it for your own, specific needs. 
+It exposes common services - such as naming, configuration management, synchronization, and group services - in a simple interface so you don't have to write them from scratch. You can use it off-the-shelf to implement consensus, group management, leader election, and presence protocols.
 
 h2. Overview
 
@@ -28,4 +28,17 @@ h2. Usage
 PYTHONPATH=lib.linux-i686-2.6 LD_LIBRARY_PATH=lib.linux-i686-2.6 ./zk-smoketest.py --servers "host:port(,host:port)*"
 </code>
 
-*Note*: you may need to compile the zookeeper python binding, this project includes only the linux binaries.
+*Note*: you may need to compile the zookeeper python binding yourself, this project includes only 32bit linux binaries. Additionally, the smoketest scripts rely on some changes to the zkpython binding that are not yet released, so if you do compile yourself you will need to compile zkpython from the Apache "ZooKeeper SVN trunk":http://hadoop.apache.org/zookeeper/version_control.html (this should be addressed as soon as ZooKeeper 3.3.0 is released).
+
+On success the last line of output will be "Smoke test successful", otw an exception will be raised.
+
+ZooKeeper client output is written to "cli_log.txt".
+
+
+h2. Example
+
+Say you have a ZooKeeper ensemble with 5 servers (host1,host2,host3,host4,host5, where each host is running ZK with a client port of 2181):
+
+<code>
+PYTHONPATH=lib.linux-i686-2.6 LD_LIBRARY_PATH=lib.linux-i686-2.6 ./zk-smoketest.py --servers "host1:2181,host2:2181,host3:2181,host4:2181,host5:2181"
+</code>
