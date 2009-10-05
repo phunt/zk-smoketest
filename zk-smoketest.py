@@ -44,6 +44,9 @@ class ZKClient(object):
         self.conn_cv.wait(timeout)
         self.conn_cv.release()
 
+        if not self.connected:
+            raise SmokeError("Unable to connect to %s" % (servers))
+
         print("Connected, handle is %d" % (self.handle))
 
     def connection_watcher(self, h, type, state, path):
@@ -129,6 +132,14 @@ class SmokeError(Exception):
 if __name__ == '__main__':
     servers = options.servers.split(",")
 
+    # create all the sessions first to ensure that all servers are
+    # at least available & quorum has been formed. otw this will 
+    # fail right away (before we start creating nodes)
+    sessions = []
+    # create one session to each of the servers in the ensemble
+    for i, server in enumerate(servers):
+        sessions.append(ZKClient(server, TIMEOUT))
+
     # create on first server
     zk = ZKClient(servers[0], TIMEOUT)
 
@@ -144,7 +155,7 @@ if __name__ == '__main__':
     # make sure previous cleaned up properly
     children = zk.get_children(rootpath)
     if len(children) > 0:
-        raise SmokeError("there should be not children in %s"
+        raise SmokeError("there should not be children in %s"
                          "root data is: %s, count is %d"
                          % (rootpath, zk.get(rootpath), len(children)))
 
@@ -153,10 +164,10 @@ if __name__ == '__main__':
     def child_path(i):
         return "%s/session_%d" % (rootpath, i)
 
-    sessions = []
-    # create znodes, one znode per client, one client per server
+    # create znodes, one znode per session (client), one session per server
     for i, server in enumerate(servers):
-        sessions.append(ZKClient(server, TIMEOUT))
+        # ensure this server is up to date with leader
+        sessions[i].async()
 
         ## create child znode
         sessions[i].create(child_path(i), "", zookeeper.EPHEMERAL)
