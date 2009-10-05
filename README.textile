@@ -22,6 +22,8 @@ This tool uses the ZooKeeper python binding to exercise the server. In general t
 # each client will then delete the the ephemeral znodes it owns, all clients verify watches are triggered properly
 # client then cleans up, removing /zk-smoketest znode
 
+This project is a work in progress - so please don't hesitate to suggest ideas, complain about problems found, or contribute patches.
+
 h2. Usage
 
 <code>
