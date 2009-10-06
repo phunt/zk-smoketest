@@ -23,6 +23,12 @@ usage = "usage: %prog [options]"
 parser = OptionParser(usage=usage)
 parser.add_option("", "--servers", dest="servers",
                   default="localhost:2181", help="comma separated list of host:port")
+parser.add_option("-v", "--verbose",
+                  action="store_true", dest="verbose", default=False,
+                  help="verbose output, include more detail")
+parser.add_option("-q", "--quiet",
+                  action="store_true", dest="quiet", default=False,
+                  help="quiet output, basically just success/failure")
 
 (options, args) = parser.parse_args()
 
@@ -39,7 +45,8 @@ class ZKClient(object):
         self.handle = -1
 
         self.conn_cv.acquire()
-        print("Connecting to %s" % (servers))
+        if not options.quiet: print("Connecting to %s" % (servers))
+        start = time.time()
         self.handle = zookeeper.init(servers, self.connection_watcher, 30000)
         self.conn_cv.wait(timeout)
         self.conn_cv.release()
@@ -47,7 +54,9 @@ class ZKClient(object):
         if not self.connected:
             raise SmokeError("Unable to connect to %s" % (servers))
 
-        print("Connected, handle is %d" % (self.handle))
+        if not options.quiet:
+            print("Connected in %d ms, handle is %d"
+                  % (int((time.time() - start) * 1000), self.handle))
 
     def connection_watcher(self, h, type, state, path):
         self.handle = h
@@ -60,10 +69,19 @@ class ZKClient(object):
         zookeeper.close(self.handle)
     
     def create(self, path, data="", flags=0, acl=[ZOO_OPEN_ACL_UNSAFE]):
-        return zookeeper.create(self.handle, path, data, acl, flags)
+        start = time.time()
+        result = zookeeper.create(self.handle, path, data, acl, flags)
+        if options.verbose:
+            print("Node %s created in %d ms"
+                  % (path, int((time.time() - start) * 1000)))
+        return result
 
     def delete(self, path, version=-1):
+        start = time.time()
         zookeeper.delete(self.handle, path, version)
+        if options.verbose:
+            print("Node %s deleted in %d ms"
+                  % (path, int((time.time() - start) * 1000)))
 
     def get(self, path, watcher=None):
         return zookeeper.get(self.handle, path, watcher)
@@ -107,8 +125,9 @@ class CountingWatcher(object):
 
     def __call__(self, handle, typ, state, path):
         self.count += 1
-        print("handle %d got watch for %s in watcher, count %d" %
-              (handle, path, self.count))
+        if options.verbose:
+            print("handle %d got watch for %s in watcher, count %d" %
+                  (handle, path, self.count))
 
 """Callable watcher that counts the number of notifications
 and verifies that the paths are sequential"""
@@ -146,7 +165,8 @@ if __name__ == '__main__':
     rootpath = "/zk-smoketest"
 
     if zk.exists(rootpath):
-        print("Node %s already exists, attempting reuse" % (rootpath))
+        if not options.quiet:
+            print("Node %s already exists, attempting reuse" % (rootpath))
     else:
         zk.create(rootpath,
                   "smoketest root, delete after test done, created %s" %

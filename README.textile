@@ -26,6 +26,18 @@ This project is a work in progress - so please don't hesitate to suggest ideas, 
 
 h2. Usage
 
+<pre>
+Usage: zk-smoketest.py [options]
+
+Options:
+  -h, --help         show this help message and exit
+  --servers=SERVERS  comma separated list of host:port
+  -v, --verbose      verbose output, include more detail
+  -q, --quiet        quiet output, basically just success/failure
+</pre>
+
+Verbose output includes timing information for some critical operations (connection establishment, creating/deleting nodes, etc...).
+
 <code>
 PYTHONPATH=lib.linux-i686-2.6 LD_LIBRARY_PATH=lib.linux-i686-2.6 ./zk-smoketest.py --servers "host:port(,host:port)*"
 </code>
