@@ -61,13 +61,11 @@ class SmokeError(Exception):
     def __str__(self):
         return repr(self.value)
 
-def start():
-    global _start
-    _start = time.time()
-
-def end(msg, count=options.znode_count):
-    global _start
-    elapms = (time.time() - _start) * 1000
+def timer(ops, msg, count=options.znode_count):
+    start = time.time()
+    for op in ops:
+        pass
+    elapms = (time.time() - start) * 1000
     print("%s in %d ms (%f ms/op %f/sec)"
           % (msg, int(elapms), elapms/count, count/(elapms/1000.0)))
 
@@ -105,28 +103,34 @@ if __name__ == '__main__':
         print("Testing latencies on server %s" % (server))
 
         # create znode_count znodes (perm)
-        start()
-        for j in xrange(options.znode_count):
-            sessions[i].create(child_path(j), "")
-        end("created %d permanent znodes" % (options.znode_count))
+        timer((sessions[i].create(child_path(j), "")
+               for j in xrange(options.znode_count)),
+              "created %d permanent znodes" % (options.znode_count))
+
+        # set znode_count znodes
+        timer((sessions[i].set(child_path(j), "")
+               for j in xrange(options.znode_count)),
+              "set     %d           znodes" % (options.znode_count))
+
+        # get znode_count znodes
+        timer((sessions[i].get(child_path(j))
+               for j in xrange(options.znode_count)),
+              "get     %d           znodes" % (options.znode_count))
 
         # delete znode_count znodes
-        start()
-        for j in xrange(options.znode_count):
-            sessions[i].delete(child_path(j))
-        end("deleted %d permanent znodes" % (options.znode_count))
+        timer((sessions[i].delete(child_path(j))
+               for j in xrange(options.znode_count)),
+              "deleted %d permanent znodes" % (options.znode_count))
 
         # create znode_count znodes (ephemeral)
-        start()
-        for j in xrange(options.znode_count):
-            sessions[i].create(child_path(j), "", zookeeper.EPHEMERAL)
-        end("created %d ephemeral znodes" % (options.znode_count))
+        timer((sessions[i].create(child_path(j), "", zookeeper.EPHEMERAL)
+               for j in xrange(options.znode_count)),
+              "created %d ephemeral znodes" % (options.znode_count))
 
-        # delete znode_count znodes
-        start()
-        for j in xrange(options.znode_count):
-            sessions[i].delete(child_path(j))
-        end("deleted %d ephemeral znodes" % (options.znode_count))
+        # # delete znode_count znodes
+        timer((sessions[i].delete(child_path(j))
+               for j in xrange(options.znode_count)),
+              "deleted %d ephemeral znodes" % (options.znode_count))
 
     sessions[0].delete(options.root_znode)
 
