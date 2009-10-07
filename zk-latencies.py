@@ -25,16 +25,13 @@ from zkclient import ZKClient, TIMEOUT, SequentialCountingWatcher, zookeeper
 usage = "usage: %prog [options]"
 parser = OptionParser(usage=usage)
 parser.add_option("", "--servers", dest="servers",
-                  default="localhost:2181", help="comma separated list of host:port")
+                  default="localhost:2181", help="comma separated list of host:port (default localhost:2181)")
 parser.add_option("", "--root_znode", dest="root_znode",
-                  default="/zk-latencies", help="root for the test (will be created)")
+                  default="/zk-latencies", help="root for the test, will be created as part of test (default /zk-latencies)")
 parser.add_option("", "--znode_size", dest="znode_size",
-                  default=25, help="data size when creating/setting znodes (default 100)")
-parser.add_option("", "--test_latencies",
-                  action="store_true", dest="test_latencies", default=False,
-                  help="specifying this option runs create/delete/get/set/watch operations (default off)")
+                  default=25, help="data size when creating/setting znodes (default 25)")
 parser.add_option("", "--znode_count", dest="znode_count", default=10000,
-                  help="the number of znodes to operate on in each performance section")
+                  help="the number of znodes to operate on in each performance section (default 10000)")
 
 parser.add_option("", "--force",
                   action="store_true", dest="force", default=False,
