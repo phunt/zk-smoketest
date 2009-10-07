@@ -99,43 +99,43 @@ if __name__ == '__main__':
     def child_path(i):
         return "%s/session_%d" % (options.root_znode, i)
 
-    for i, server in enumerate(servers):
-        print("Testing latencies on server %s" % (server))
+    for i, s in enumerate(sessions):
+        print("Testing latencies on server %s" % (servers[i]))
 
         # create znode_count znodes (perm)
-        timer((sessions[i].create(child_path(j), "")
+        timer((s.create(child_path(j), "")
                for j in xrange(options.znode_count)),
               "created %d permanent znodes" % (options.znode_count))
 
         # set znode_count znodes
-        timer((sessions[i].set(child_path(j), "")
+        timer((s.set(child_path(j), "")
                for j in xrange(options.znode_count)),
               "set     %d           znodes" % (options.znode_count))
 
         # get znode_count znodes
-        timer((sessions[i].get(child_path(j))
+        timer((s.get(child_path(j))
                for j in xrange(options.znode_count)),
               "get     %d           znodes" % (options.znode_count))
 
         # delete znode_count znodes
-        timer((sessions[i].delete(child_path(j))
+        timer((s.delete(child_path(j))
                for j in xrange(options.znode_count)),
               "deleted %d permanent znodes" % (options.znode_count))
 
         # create znode_count znodes (ephemeral)
-        timer((sessions[i].create(child_path(j), "", zookeeper.EPHEMERAL)
+        timer((s.create(child_path(j), "", zookeeper.EPHEMERAL)
                for j in xrange(options.znode_count)),
               "created %d ephemeral znodes" % (options.znode_count))
 
         # # delete znode_count znodes
-        timer((sessions[i].delete(child_path(j))
+        timer((s.delete(child_path(j))
                for j in xrange(options.znode_count)),
               "deleted %d ephemeral znodes" % (options.znode_count))
 
     sessions[0].delete(options.root_znode)
 
     # close sessions
-    for i, server in enumerate(servers):
-        sessions[i].close()
+    for s in sessions:
+        s.close()
 
     print("Latency test complete")
