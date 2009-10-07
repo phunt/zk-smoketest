@@ -37,6 +37,10 @@ parser.add_option("", "--force",
                   action="store_true", dest="force", default=False,
                   help="force the test to run, even if root_znode exists - WARNING! don't run this on a real znode or you'll lose it!!!")
 
+parser.add_option("", "--synchronous",
+                  action="store_true", dest="synchronous", default=False,
+                  help="by default asynchronous ZK api is used, this forces synchronous calls")
+
 parser.add_option("-v", "--verbose",
                   action="store_true", dest="verbose", default=False,
                   help="verbose output, include more detail")
@@ -66,6 +70,142 @@ def timer(ops, msg, count=options.znode_count):
     print("%s in %d ms (%f ms/op %f/sec)"
           % (msg, int(elapms), elapms/count, count/(elapms/1000.0)))
 
+def timer2(func, msg, count=options.znode_count):
+    start = time.time()
+    func()
+    elapms = (time.time() - start) * 1000
+    print("%s in %d ms (%f ms/op %f/sec)"
+          % (msg, int(elapms), elapms/count, count/(elapms/1000.0)))
+
+
+def child_path(i):
+    return "%s/session_%d" % (options.root_znode, i)
+
+def synchronous_latency_test(s, data):
+    # create znode_count znodes (perm)
+    timer((s.create(child_path(j), data)
+           for j in xrange(options.znode_count)),
+          "created %d permanent znodes" % (options.znode_count))
+
+    # set znode_count znodes
+    timer((s.set(child_path(j), data)
+           for j in xrange(options.znode_count)),
+          "set     %d           znodes" % (options.znode_count))
+
+    # get znode_count znodes
+    timer((s.get(child_path(j))
+           for j in xrange(options.znode_count)),
+          "get     %d           znodes" % (options.znode_count))
+
+    # delete znode_count znodes
+    timer((s.delete(child_path(j))
+           for j in xrange(options.znode_count)),
+          "deleted %d permanent znodes" % (options.znode_count))
+
+    # create znode_count znodes (ephemeral)
+    timer((s.create(child_path(j), data, zookeeper.EPHEMERAL)
+           for j in xrange(options.znode_count)),
+          "created %d ephemeral znodes" % (options.znode_count))
+
+    # # delete znode_count znodes
+    timer((s.delete(child_path(j))
+           for j in xrange(options.znode_count)),
+          "deleted %d ephemeral znodes" % (options.znode_count))
+
+def asynchronous_latency_test(s, data):
+    # create znode_count znodes (perm)
+    def func():
+        callbacks = []
+        for j in xrange(options.znode_count):
+            cb = zkclient.CreateCallback()
+            cb.cv.acquire()
+            s.acreate(child_path(j), cb, data)
+            callbacks.append(cb)
+
+        for j, cb in enumerate(callbacks):
+            cb.waitForSuccess()
+            if cb.path != child_path(j):
+                raise SmokeError("invalid path %s for operation %d on handle %d" %
+                                 (cb.path, j, cb.handle))
+
+    timer2(func, "created %d permanent znodes" % (options.znode_count))
+
+    # set znode_count znodes
+    def func():
+        callbacks = []
+        for j in xrange(options.znode_count):
+            cb = zkclient.SetCallback()
+            cb.cv.acquire()
+            s.aset(child_path(j), cb, data)
+            callbacks.append(cb)
+
+        for cb in callbacks:
+            cb.waitForSuccess()
+
+    timer2(func, "set     %d           znodes" % (options.znode_count))
+
+    # get znode_count znodes
+    def func():
+        callbacks = []
+        for j in xrange(options.znode_count):
+            cb = zkclient.GetCallback()
+            cb.cv.acquire()
+            s.aget(child_path(j), cb)
+            callbacks.append(cb)
+
+        for cb in callbacks:
+            cb.waitForSuccess()
+            if cb.value != data:
+                raise SmokeError("invalid data %s for operation %d on handle %d" %
+                                 (cb.value, j, cb.handle))
+
+    timer2(func, "get     %d           znodes" % (options.znode_count))
+
+
+    # delete znode_count znodes (perm)
+    def func():
+        callbacks = []
+        for j in xrange(options.znode_count):
+            cb = zkclient.DeleteCallback()
+            cb.cv.acquire()
+            s.adelete(child_path(j), cb)
+            callbacks.append(cb)
+
+        for cb in callbacks:
+            cb.waitForSuccess()
+
+    timer2(func, "deleted %d permanent znodes" % (options.znode_count))
+
+    # create znode_count znodes (ephemeral)
+    def func():
+        callbacks = []
+        for j in xrange(options.znode_count):
+            cb = zkclient.CreateCallback()
+            cb.cv.acquire()
+            s.acreate(child_path(j), cb, data, zookeeper.EPHEMERAL)
+            callbacks.append(cb)
+
+        for j, cb in enumerate(callbacks):
+            cb.waitForSuccess()
+            if cb.path != child_path(j):
+                raise SmokeError("invalid path %s for operation %d on handle %d" %
+                                 (cb.path, j, cb.handle))
+
+    timer2(func, "created %d permanent znodes" % (options.znode_count))
+
+    # delete znode_count znodes (perm)
+    def func():
+        callbacks = []
+        for j in xrange(options.znode_count):
+            cb = zkclient.DeleteCallback()
+            cb.cv.acquire()
+            s.adelete(child_path(j), cb)
+            callbacks.append(cb)
+
+        for cb in callbacks:
+            cb.waitForSuccess()
+
+    timer2(func, "deleted %d permanent znodes" % (options.znode_count))
 
 if __name__ == '__main__':
     data = options.znode_size * "x"
@@ -93,42 +233,14 @@ if __name__ == '__main__':
                            "smoketest root, delete after test done, created %s" %
                            (datetime.datetime.now().ctime()))
 
-
-    def child_path(i):
-        return "%s/session_%d" % (options.root_znode, i)
-
     for i, s in enumerate(sessions):
-        print("Testing latencies on server %s" % (servers[i]))
+        print("Testing latencies on server %s using %s calls" %
+              (servers[i], "syncronous" if options.synchronous else "asynchronous"))
 
-        # create znode_count znodes (perm)
-        timer((s.create(child_path(j), data)
-               for j in xrange(options.znode_count)),
-              "created %d permanent znodes" % (options.znode_count))
-
-        # set znode_count znodes
-        timer((s.set(child_path(j), data)
-               for j in xrange(options.znode_count)),
-              "set     %d           znodes" % (options.znode_count))
-
-        # get znode_count znodes
-        timer((s.get(child_path(j))
-               for j in xrange(options.znode_count)),
-              "get     %d           znodes" % (options.znode_count))
-
-        # delete znode_count znodes
-        timer((s.delete(child_path(j))
-               for j in xrange(options.znode_count)),
-              "deleted %d permanent znodes" % (options.znode_count))
-
-        # create znode_count znodes (ephemeral)
-        timer((s.create(child_path(j), data, zookeeper.EPHEMERAL)
-               for j in xrange(options.znode_count)),
-              "created %d ephemeral znodes" % (options.znode_count))
-
-        # # delete znode_count znodes
-        timer((s.delete(child_path(j))
-               for j in xrange(options.znode_count)),
-              "deleted %d ephemeral znodes" % (options.znode_count))
+        if options.synchronous:
+            synchronous_latency_test(s, data)
+        else:
+            asynchronous_latency_test(s, data)
 
     sessions[0].delete(options.root_znode)
 

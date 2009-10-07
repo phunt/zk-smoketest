@@ -6,7 +6,9 @@ h2. Summary
 
 "This project":http://github.com/phunt/zk-smoketest provides a simple smoketest client for a ZooKeeper ensemble. Useful for verifying new, updated, existing installations.
 
-I've recently added a new zk-latencies.py client, which tests latencies of various operations against the servers in the cluster. This is useful when you setup a new cluster and wish to ensure it will be adequate to the task (in particular operation latencies). Try varying the numbers and sizes of the znodes used in the test.
+I've recently added a new zk-latencies.py client, which tests latencies of various operations against the servers in the cluster. This is useful when you setup a new cluster and wish to ensure it will be adequate to the task (in particular operation latencies). Try varying the numbers and sizes of the znodes used in the test, also compare asynchronous latencies vs synchronous (will give you insight into your network latencies).
+
+*Note*: python's "time" library is used to time the operations, on some systems the resolution of the timer may be as low as 1 second, depending on the python interpreter implementation for that platform.
 
 h3. What's Apache ZooKeeper?
 
@@ -68,6 +70,8 @@ This tool uses the ZooKeeper python binding to test various operation latencies.
 # run various (create/get/set/delete) operations against each server, note the latencies of operations
 # client then cleans up, removing /zk-latencies znode
 
+By default asynchronous operations are run, specify the "--synchronous" flag if you want synchronous operations to be used. Typically the difference between the two will give you insight into your network latency.
+
 This project is a work in progress - so please don't hesitate to suggest ideas, complain about problems found, or contribute patches.
 
 h3. Usage
@@ -90,6 +94,8 @@ Options:
   --force               force the test to run, even if root_znode exists -
                         WARNING! don't run this on a real znode or you'll lose
                         it!!!
+  --synchronous         by default asynchronous ZK api is used, this forces
+                        synchronous calls
   -v, --verbose         verbose output, include more detail
   -q, --quiet           quiet output, basically just success/failure
 </pre>
@@ -110,20 +116,20 @@ h3. Example
 Say you have a ZooKeeper ensemble with 5 servers (host1,host2,host3,host4,host5, where each host is running ZK with a client port of 2181). This runs the latency test with 100 znodes per phase, where the data size is 100 bytes. You'll want to change the number of znodes and size of data based on your expected requirements.
 
 <code>
- PYTHONPATH=lib.linux-i686-2.6 LD_LIBRARY_PATH=lib.linux-i686-2.6 ./zk-latencies.py --servers "host1:2181,host2:2181,host3:2181,host4:2181,host5:2181" --znode_count=100 --znode_size=100
+ PYTHONPATH=lib.linux-i686-2.6 LD_LIBRARY_PATH=lib.linux-i686-2.6 ./zk-latencies.py --servers "host1:2181,host2:2181,host3:2181,host4:2181,host5:2181" --znode_count=100 --znode_size=100 --synchronous
 </code>
 
 Result:
 
 <pre>
-Testing latencies on server host1:2181
+Testing latencies on server host1:2181 using syncronous calls
 created 100 permanent znodes in 177 ms (1.772718 ms/op 564.105378/sec)
 set     100           znodes in 140 ms (1.408131 ms/op 710.161138/sec)
 get     100           znodes in 22 ms (0.224919 ms/op 4446.038712/sec)
 deleted 100 permanent znodes in 134 ms (1.347141 ms/op 742.312648/sec)
 created 100 ephemeral znodes in 231 ms (2.313130 ms/op 432.314674/sec)
 deleted 100 ephemeral znodes in 127 ms (1.277809 ms/op 782.589486/sec)
-Testing latencies on server host2:2181
+Testing latencies on server host2:2181 using syncronous calls
 created 100 permanent znodes in 141 ms (1.417971 ms/op 705.233211/sec)
 set     100           znodes in 135 ms (1.352711 ms/op 739.256356/sec)
 get     100           znodes in 19 ms (0.194461 ms/op 5142.410161/sec)

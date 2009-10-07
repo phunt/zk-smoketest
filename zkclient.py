@@ -32,7 +32,7 @@ class ZKClient(object):
         self.conn_cv.release()
 
     def close(self):
-        zookeeper.close(self.handle)
+        return zookeeper.close(self.handle)
     
     def create(self, path, data="", flags=0, acl=[ZOO_OPEN_ACL_UNSAFE]):
         start = time.time()
@@ -44,10 +44,11 @@ class ZKClient(object):
 
     def delete(self, path, version=-1):
         start = time.time()
-        zookeeper.delete(self.handle, path, version)
+        result = zookeeper.delete(self.handle, path, version)
         if options.verbose:
             print("Node %s deleted in %d ms"
                   % (path, int((time.time() - start) * 1000)))
+        return result
 
     def get(self, path, watcher=None):
         return zookeeper.get(self.handle, path, watcher)
@@ -56,7 +57,7 @@ class ZKClient(object):
         return zookeeper.exists(self.handle, path, watcher)
 
     def set(self, path, data="", version=-1):
-        zookeeper.set(self.handle, path, data, version)
+        return zookeeper.set(self.handle, path, data, version)
 
     def set2(self, path, data="", version=-1):
         return zookeeper.set2(self.handle, path, data, version)
@@ -66,7 +67,21 @@ class ZKClient(object):
         return zookeeper.get_children(self.handle, path, watcher)
 
     def async(self, path = "/"):
-        zookeeper.async(self.handle, path)
+        return zookeeper.async(self.handle, path)
+
+    def acreate(self, path, callback, data="", flags=0, acl=[ZOO_OPEN_ACL_UNSAFE]):
+        result = zookeeper.acreate(self.handle, path, data, acl, flags, callback)
+        return result
+
+    def adelete(self, path, callback, version=-1):
+        return zookeeper.adelete(self.handle, path, version, callback)
+
+    def aget(self, path, callback, watcher=None):
+        return zookeeper.aget(self.handle, path, watcher, callback)
+
+    def aset(self, path, callback, data="", version=-1):
+        return zookeeper.aset(self.handle, path, data, version, callback)
+
 
 """Callable watcher that counts the number of notifications"""
 class CountingWatcher(object):
@@ -107,3 +122,68 @@ class SequentialCountingWatcher(CountingWatcher):
             raise SmokeError("handle %d invalid path order %s" % (handle, path))
         CountingWatcher.__call__(self, handle, typ, state, path)
 
+class Callback(object):
+    def __init__(self):
+        self.cv = threading.Condition()
+        self.callback_flag = False
+        self.rc = -1
+
+    def callback(self, handle, rc, handler):
+        self.cv.acquire()
+        self.callback_flag = True
+        self.handle = handle
+        self.rc = rc
+        handler()
+        self.cv.notify()
+        self.cv.release()
+
+    def waitForSuccess(self, timeout=TIMEOUT):
+        while not self.callback_flag:
+            self.cv.wait(timeout)
+        self.cv.release()
+
+        if not self.callback_flag == True:
+            raise SmokeError("asynchronous operation timed out on handle %d" %
+                             (self.handle))
+        if not self.rc == zookeeper.OK:
+            raise SmokeError(
+                "asynchronous operation failed on handle %d with rc %d" %
+                (self.handle, self.rc))
+
+
+class GetCallback(Callback):
+    def __init__(self):
+        Callback.__init__(self)
+
+    def __call__(self, handle, rc, value, stat):
+        def handler():
+            self.value = value
+            self.stat = stat
+        self.callback(handle, rc, handler)
+
+class SetCallback(Callback):
+    def __init__(self):
+        Callback.__init__(self)
+
+    def __call__(self, handle, rc, stat):
+        def handler():
+            self.stat = stat
+        self.callback(handle, rc, handler)
+
+class CreateCallback(Callback):
+    def __init__(self):
+        Callback.__init__(self)
+
+    def __call__(self, handle, rc, path):
+        def handler():
+            self.path = path
+        self.callback(handle, rc, handler)
+
+class DeleteCallback(Callback):
+    def __init__(self):
+        Callback.__init__(self)
+
+    def __call__(self, handle, rc):
+        def handler():
+            pass
+        self.callback(handle, rc, handler)
