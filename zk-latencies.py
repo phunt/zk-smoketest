@@ -71,6 +71,7 @@ def timer(ops, msg, count=options.znode_count):
 
 
 if __name__ == '__main__':
+    data = options.znode_size * "x"
     servers = options.servers.split(",")
 
     # create all the sessions first to ensure that all servers are
@@ -103,12 +104,12 @@ if __name__ == '__main__':
         print("Testing latencies on server %s" % (servers[i]))
 
         # create znode_count znodes (perm)
-        timer((s.create(child_path(j), "")
+        timer((s.create(child_path(j), data)
                for j in xrange(options.znode_count)),
               "created %d permanent znodes" % (options.znode_count))
 
         # set znode_count znodes
-        timer((s.set(child_path(j), "")
+        timer((s.set(child_path(j), data)
                for j in xrange(options.znode_count)),
               "set     %d           znodes" % (options.znode_count))
 
@@ -123,7 +124,7 @@ if __name__ == '__main__':
               "deleted %d permanent znodes" % (options.znode_count))
 
         # create znode_count znodes (ephemeral)
-        timer((s.create(child_path(j), "", zookeeper.EPHEMERAL)
+        timer((s.create(child_path(j), data, zookeeper.EPHEMERAL)
                for j in xrange(options.znode_count)),
               "created %d ephemeral znodes" % (options.znode_count))
 
