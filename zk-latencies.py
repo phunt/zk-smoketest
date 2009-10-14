@@ -28,9 +28,9 @@ parser.add_option("", "--servers", dest="servers",
                   default="localhost:2181", help="comma separated list of host:port (default localhost:2181)")
 parser.add_option("", "--root_znode", dest="root_znode",
                   default="/zk-latencies", help="root for the test, will be created as part of test (default /zk-latencies)")
-parser.add_option("", "--znode_size", dest="znode_size",
+parser.add_option("", "--znode_size", dest="znode_size", type="int",
                   default=25, help="data size when creating/setting znodes (default 25)")
-parser.add_option("", "--znode_count", dest="znode_count", default=10000,
+parser.add_option("", "--znode_count", dest="znode_count", default=10000, type="int",
                   help="the number of znodes to operate on in each performance section (default 10000)")
 
 parser.add_option("", "--force",
@@ -49,8 +49,6 @@ parser.add_option("-q", "--quiet",
                   help="quiet output, basically just success/failure")
 
 (options, args) = parser.parse_args()
-options.znode_count = int(options.znode_count)
-options.znode_size = int(options.znode_size)
 
 zkclient.options = options
 
