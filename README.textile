@@ -16,6 +16,10 @@ From the "official site":http://hadoop.apache.org/zookeeper/: "ZooKeeper is a hi
 
 It exposes common services - such as naming, configuration management, synchronization, and group services - in a simple interface so you don't have to write them from scratch. You can use it off-the-shelf to implement consensus, group management, leader election, and presence protocols.
 
+h2. License
+
+This project is licensed under the Apache License Version 2.0
+
 h2. zk-smoketest.py
 
 This tool uses the ZooKeeper python binding to exercise the server. In general the script does the following:
