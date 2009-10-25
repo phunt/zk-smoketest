@@ -234,8 +234,12 @@ if __name__ == '__main__':
                            (datetime.datetime.now().ctime()))
 
     for i, s in enumerate(sessions):
+        if options.synchronous:
+            type = "syncronous" 
+        else:
+            type = "asynchronous"
         print("Testing latencies on server %s using %s calls" %
-              (servers[i], "syncronous" if options.synchronous else "asynchronous"))
+              (servers[i], type))
 
         if options.synchronous:
             synchronous_latency_test(s, data)
