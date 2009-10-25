@@ -55,7 +55,7 @@ PYTHONPATH=lib.linux-i686-2.6 LD_LIBRARY_PATH=lib.linux-i686-2.6 ./zk-smoketest.
 
 On success the last line of output will be "Smoke test successful", otw an exception will be raised.
 
-ZooKeeper client output is written to "cli_log.txt".
+ZooKeeper client output is written to "cli_log_%d.txt" where %d is the process id of the python process.
 
 
 h3. Example
@@ -114,7 +114,7 @@ PYTHONPATH=lib.linux-i686-2.6 LD_LIBRARY_PATH=lib.linux-i686-2.6 ./zk-latencies.
 
 On success the last line of output will be "Latency test complete", otw an exception will be raised.
 
-ZooKeeper client output is written to "cli_log.txt".
+ZooKeeper client output is written to "cli_log_%d.txt" where %d is the process id of the python process.
 
 
 h3. Example

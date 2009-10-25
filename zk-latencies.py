@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import zookeeper, time, datetime
+import datetime, time, os
 from optparse import OptionParser
 
 import zkclient
@@ -54,7 +54,7 @@ parser.add_option("-q", "--quiet",
 
 zkclient.options = options
 
-zookeeper.set_log_stream(open("cli_log.txt","w"))
+zookeeper.set_log_stream(open("cli_log_%d.txt" % (os.getpid()),"w"))
 
 class SmokeError(Exception):
     def __init__(self, value):
