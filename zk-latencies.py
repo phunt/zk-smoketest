@@ -20,7 +20,7 @@ import datetime, time, os
 from optparse import OptionParser
 
 import zkclient
-from zkclient import ZKClient, SequentialCountingWatcher, zookeeper
+from zkclient import ZKClient, CountingWatcher, zookeeper
 
 usage = "usage: %prog [options]"
 parser = OptionParser(usage=usage)
@@ -62,21 +62,24 @@ class SmokeError(Exception):
     def __str__(self):
         return repr(self.value)
 
+def print_elap(start, msg, count):
+    elapms = (time.time() - start) * 1000
+    if int(elapms) != 0:
+        print("%s in %6d ms (%f ms/op %f/sec)"
+              % (msg, int(elapms), elapms/count, count/(elapms/1000.0)))
+    else:
+        print("%s in %6d ms (included in prior)" % (msg, int(elapms)))
+
 def timer(ops, msg, count=options.znode_count):
     start = time.time()
     for op in ops:
         pass
-    elapms = (time.time() - start) * 1000
-    print("%s in %d ms (%f ms/op %f/sec)"
-          % (msg, int(elapms), elapms/count, count/(elapms/1000.0)))
+    print_elap(start, msg, count)
 
 def timer2(func, msg, count=options.znode_count):
     start = time.time()
     func()
-    elapms = (time.time() - start) * 1000
-    print("%s in %d ms (%f ms/op %f/sec)"
-          % (msg, int(elapms), elapms/count, count/(elapms/1000.0)))
-
+    print_elap(start, msg, count)
 
 def child_path(i):
     return "%s/session_%d" % (options.root_znode, i)
@@ -85,32 +88,46 @@ def synchronous_latency_test(s, data):
     # create znode_count znodes (perm)
     timer((s.create(child_path(j), data)
            for j in xrange(options.znode_count)),
-          "created %d permanent znodes" % (options.znode_count))
+          "created %d permanent znodes " % (options.znode_count))
 
     # set znode_count znodes
     timer((s.set(child_path(j), data)
            for j in xrange(options.znode_count)),
-          "set     %d           znodes" % (options.znode_count))
+          "set     %d           znodes " % (options.znode_count))
 
     # get znode_count znodes
     timer((s.get(child_path(j))
            for j in xrange(options.znode_count)),
-          "get     %d           znodes" % (options.znode_count))
+          "get     %d           znodes " % (options.znode_count))
 
     # delete znode_count znodes
     timer((s.delete(child_path(j))
            for j in xrange(options.znode_count)),
-          "deleted %d permanent znodes" % (options.znode_count))
+          "deleted %d permanent znodes " % (options.znode_count))
 
     # create znode_count znodes (ephemeral)
     timer((s.create(child_path(j), data, zookeeper.EPHEMERAL)
            for j in xrange(options.znode_count)),
-          "created %d ephemeral znodes" % (options.znode_count))
+          "created %d ephemeral znodes " % (options.znode_count))
+
+    # watch znode_count znodes
+    watcher = CountingWatcher()
+    timer((s.exists(child_path(j), watcher)
+           for j in xrange(options.znode_count)),
+          "watched %d           znodes " % (options.znode_count))
 
     # # delete znode_count znodes
     timer((s.delete(child_path(j))
            for j in xrange(options.znode_count)),
-          "deleted %d ephemeral znodes" % (options.znode_count))
+          "deleted %d ephemeral znodes " % (options.znode_count))
+
+    start = time.time()
+    if watcher.waitForExpected(options.znode_count, 60000) != options.znode_count:
+        raise SmokeError("wrong number of watches: %d" %
+                         (watcher.count))
+    print_elap(start,
+               "notif   %d           watches" % (watcher.count),
+               watcher.count)
 
 def asynchronous_latency_test(s, data):
     # create znode_count znodes (perm)
@@ -128,7 +145,7 @@ def asynchronous_latency_test(s, data):
                 raise SmokeError("invalid path %s for operation %d on handle %d" %
                                  (cb.path, j, cb.handle))
 
-    timer2(func, "created %d permanent znodes" % (options.znode_count))
+    timer2(func, "created %d permanent znodes " % (options.znode_count))
 
     # set znode_count znodes
     def func():
@@ -142,7 +159,7 @@ def asynchronous_latency_test(s, data):
         for cb in callbacks:
             cb.waitForSuccess()
 
-    timer2(func, "set     %d           znodes" % (options.znode_count))
+    timer2(func, "set     %d           znodes " % (options.znode_count))
 
     # get znode_count znodes
     def func():
@@ -159,7 +176,7 @@ def asynchronous_latency_test(s, data):
                 raise SmokeError("invalid data %s for operation %d on handle %d" %
                                  (cb.value, j, cb.handle))
 
-    timer2(func, "get     %d           znodes" % (options.znode_count))
+    timer2(func, "get     %d           znodes " % (options.znode_count))
 
 
     # delete znode_count znodes (perm)
@@ -174,7 +191,7 @@ def asynchronous_latency_test(s, data):
         for cb in callbacks:
             cb.waitForSuccess()
 
-    timer2(func, "deleted %d permanent znodes" % (options.znode_count))
+    timer2(func, "deleted %d permanent znodes " % (options.znode_count))
 
     # create znode_count znodes (ephemeral)
     def func():
@@ -191,9 +208,25 @@ def asynchronous_latency_test(s, data):
                 raise SmokeError("invalid path %s for operation %d on handle %d" %
                                  (cb.path, j, cb.handle))
 
-    timer2(func, "created %d permanent znodes" % (options.znode_count))
+    timer2(func, "created %d ephemeral znodes " % (options.znode_count))
 
-    # delete znode_count znodes (perm)
+    watcher = CountingWatcher()
+
+    # watched znode_count znodes
+    def func():
+        callbacks = []
+        for j in xrange(options.znode_count):
+            cb = zkclient.ExistsCallback()
+            cb.cv.acquire()
+            s.aexists(child_path(j), cb, watcher)
+            callbacks.append(cb)
+
+        for cb in callbacks:
+            cb.waitForSuccess()
+
+    timer2(func, "watched %d           znodes " % (options.znode_count))
+
+    # delete znode_count znodes (ephemeral)
     def func():
         callbacks = []
         for j in xrange(options.znode_count):
@@ -205,7 +238,15 @@ def asynchronous_latency_test(s, data):
         for cb in callbacks:
             cb.waitForSuccess()
 
-    timer2(func, "deleted %d permanent znodes" % (options.znode_count))
+    timer2(func, "deleted %d ephemeral znodes " % (options.znode_count))
+
+    start = time.time()
+    if watcher.waitForExpected(options.znode_count, 60000) != options.znode_count:
+        raise SmokeError("wrong number of watches: %d" %
+                         (watcher.count))
+    print_elap(start,
+               "notif   %d           watches" % (watcher.count),
+               watcher.count)
 
 if __name__ == '__main__':
     data = options.znode_size * "x"

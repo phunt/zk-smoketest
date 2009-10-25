@@ -102,6 +102,9 @@ class ZKClient(object):
     def aget(self, path, callback, watcher=None):
         return zookeeper.aget(self.handle, path, watcher, callback)
 
+    def aexists(self, path, callback, watcher=None):
+        return zookeeper.aexists(self.handle, path, watcher, callback)
+
     def aset(self, path, callback, data="", version=-1):
         return zookeeper.aset(self.handle, path, data, version, callback)
 
@@ -192,6 +195,9 @@ class SetCallback(Callback):
         def handler():
             self.stat = stat
         self.callback(handle, rc, handler)
+
+class ExistsCallback(SetCallback):
+    pass
 
 class CreateCallback(Callback):
     def __init__(self):
