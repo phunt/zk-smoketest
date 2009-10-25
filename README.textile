@@ -97,6 +97,8 @@ Options:
   --znode_count=ZNODE_COUNT
                         the number of znodes to operate on in each performance
                         section (default 10000)
+  --watch_multiple=WATCH_MULTIPLE
+                        number of watches to put on each znode (default 1)
   --force               force the test to run, even if root_znode exists -
                         WARNING! don't run this on a real znode or you'll lose
                         it!!!

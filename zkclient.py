@@ -108,11 +108,15 @@ class ZKClient(object):
     def aset(self, path, callback, data="", version=-1):
         return zookeeper.aset(self.handle, path, data, version, callback)
 
+watch_count = 0
 
 """Callable watcher that counts the number of notifications"""
 class CountingWatcher(object):
     def __init__(self):
         self.count = 0
+        global watch_count
+        self.id = watch_count
+        watch_count += 1
 
     def waitForExpected(self, count, maxwait):
         """Wait up to maxwait for the specified count,
@@ -133,8 +137,8 @@ class CountingWatcher(object):
     def __call__(self, handle, typ, state, path):
         self.count += 1
         if options.verbose:
-            print("handle %d got watch for %s in watcher, count %d" %
-                  (handle, path, self.count))
+            print("handle %d got watch for %s in watcher %d, count %d" %
+                  (handle, path, self.id, self.count))
 
 """Callable watcher that counts the number of notifications
 and verifies that the paths are sequential"""
