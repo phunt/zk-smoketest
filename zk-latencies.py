@@ -20,12 +20,14 @@ import zookeeper, time, datetime
 from optparse import OptionParser
 
 import zkclient
-from zkclient import ZKClient, TIMEOUT, SequentialCountingWatcher, zookeeper
+from zkclient import ZKClient, SequentialCountingWatcher, zookeeper
 
 usage = "usage: %prog [options]"
 parser = OptionParser(usage=usage)
 parser.add_option("", "--servers", dest="servers",
                   default="localhost:2181", help="comma separated list of host:port (default localhost:2181)")
+parser.add_option("", "--timeout", dest="timeout", type="int",
+                  default=5000, help="session timeout in milliseconds (default 5000)")
 parser.add_option("", "--root_znode", dest="root_znode",
                   default="/zk-latencies", help="root for the test, will be created as part of test (default /zk-latencies)")
 parser.add_option("", "--znode_size", dest="znode_size", type="int",
@@ -215,7 +217,7 @@ if __name__ == '__main__':
     sessions = []
     # create one session to each of the servers in the ensemble
     for i, server in enumerate(servers):
-        sessions.append(ZKClient(server))
+        sessions.append(ZKClient(server, options.timeout))
 
     # ensure root_znode doesn't exist
     if sessions[0].exists(options.root_znode):

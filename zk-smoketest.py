@@ -20,12 +20,14 @@ import datetime
 from optparse import OptionParser
 
 import zkclient
-from zkclient import ZKClient, TIMEOUT, SequentialCountingWatcher, zookeeper
+from zkclient import ZKClient, SequentialCountingWatcher, zookeeper
 
 usage = "usage: %prog [options]"
 parser = OptionParser(usage=usage)
 parser.add_option("", "--servers", dest="servers",
-                  default="localhost:2181", help="comma separated list of host:port")
+                  default="localhost:2181", help="comma separated list of host:port (default localhost:2181)")
+parser.add_option("", "--timeout", dest="timeout", type="int",
+                  default=5000, help="session timeout in milliseconds (default 5000)")
 parser.add_option("-v", "--verbose",
                   action="store_true", dest="verbose", default=False,
                   help="verbose output, include more detail")
@@ -55,10 +57,10 @@ if __name__ == '__main__':
     sessions = []
     # create one session to each of the servers in the ensemble
     for i, server in enumerate(servers):
-        sessions.append(ZKClient(server, TIMEOUT))
+        sessions.append(ZKClient(server, options.timeout))
 
     # create on first server
-    zk = ZKClient(servers[0], TIMEOUT)
+    zk = ZKClient(servers[0], options.timeout)
 
     rootpath = "/zk-smoketest"
 
@@ -112,7 +114,7 @@ if __name__ == '__main__':
     for i, watcher in enumerate(watchers):
         # ensure this server is up to date with leader
         sessions[i].async()
-        if watcher.waitForExpected(len(sessions), TIMEOUT) != len(sessions):
+        if watcher.waitForExpected(len(sessions), options.timeout) != len(sessions):
             raise SmokeError("server %s wrong number of watches: %d" %
                              (server, watcher.count))
 
@@ -122,7 +124,7 @@ if __name__ == '__main__':
         sessions[i].close()
 
     # cleanup root node
-    zk = ZKClient(servers[-1], TIMEOUT)
+    zk = ZKClient(servers[-1], options.timeout)
     # ensure this server is up to date with leader (ephems)
     zk.async()
     zk.delete(rootpath)

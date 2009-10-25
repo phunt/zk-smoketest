@@ -39,7 +39,8 @@ Usage: zk-smoketest.py [options]
 
 Options:
   -h, --help         show this help message and exit
-  --servers=SERVERS  comma separated list of host:port
+  --servers=SERVERS  comma separated list of host:port (default localhost:2181)
+  --timeout=TIMEOUT  session timeout in milliseconds (default 5000)
   -v, --verbose      verbose output, include more detail
   -q, --quiet        quiet output, basically just success/failure
 </pre>
@@ -87,6 +88,7 @@ Options:
   -h, --help            show this help message and exit
   --servers=SERVERS     comma separated list of host:port (default
                         localhost:2181)
+  --timeout=TIMEOUT     session timeout in milliseconds (default 5000)
   --root_znode=ROOT_ZNODE
                         root for the test, will be created as part of test
                         (default /zk-latencies)

@@ -16,12 +16,19 @@
 
 import zookeeper, time, datetime, threading
 
-TIMEOUT = 10.0
+DEFAULT_TIMEOUT = 30000
 
 ZOO_OPEN_ACL_UNSAFE = {"perms":0x1f, "scheme":"world", "id" :"anyone"}
 
+class ZKClientError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
 class ZKClient(object):
-    def __init__(self, servers, timeout=TIMEOUT):
+    def __init__(self, servers, timeout=DEFAULT_TIMEOUT):
+        self.timeout = timeout
         self.connected = False
         self.conn_cv = threading.Condition( )
         self.handle = -1
@@ -29,12 +36,12 @@ class ZKClient(object):
         self.conn_cv.acquire()
         if not options.quiet: print("Connecting to %s" % (servers))
         start = time.time()
-        self.handle = zookeeper.init(servers, self.connection_watcher, 30000)
-        self.conn_cv.wait(timeout)
+        self.handle = zookeeper.init(servers, self.connection_watcher, timeout)
+        self.conn_cv.wait()
         self.conn_cv.release()
 
         if not self.connected:
-            raise SmokeError("Unable to connect to %s" % (servers))
+            raise ZKClientError("Unable to connect to %s" % (servers))
 
         if not options.quiet:
             print("Connected in %d ms, handle is %d"
@@ -105,19 +112,19 @@ class CountingWatcher(object):
         self.count = 0
 
     def waitForExpected(self, count, maxwait):
-        """Wait up to maxwait seconds for the specified count,
+        """Wait up to maxwait for the specified count,
         return the count whether or not maxwait reached.
 
         Arguments:
         - `count`: expected count
-        - `maxwait`: max seconds to wait
+        - `maxwait`: max milliseconds to wait
         """
         waited = 0
         while (waited < maxwait):
             if self.count >= count:
                 return self.count
             time.sleep(1.0);
-            waited += 1
+            waited += 1000
         return self.count
 
     def __call__(self, handle, typ, state, path):
@@ -135,7 +142,7 @@ class SequentialCountingWatcher(CountingWatcher):
 
     def __call__(self, handle, typ, state, path):
         if not self.child_path(self.count) == path:
-            raise SmokeError("handle %d invalid path order %s" % (handle, path))
+            raise ZKClientError("handle %d invalid path order %s" % (handle, path))
         CountingWatcher.__call__(self, handle, typ, state, path)
 
 class Callback(object):
@@ -153,16 +160,16 @@ class Callback(object):
         self.cv.notify()
         self.cv.release()
 
-    def waitForSuccess(self, timeout=TIMEOUT):
+    def waitForSuccess(self):
         while not self.callback_flag:
-            self.cv.wait(timeout)
+            self.cv.wait()
         self.cv.release()
 
         if not self.callback_flag == True:
-            raise SmokeError("asynchronous operation timed out on handle %d" %
+            raise ZKClientError("asynchronous operation timed out on handle %d" %
                              (self.handle))
         if not self.rc == zookeeper.OK:
-            raise SmokeError(
+            raise ZKClientError(
                 "asynchronous operation failed on handle %d with rc %d" %
                 (self.handle, self.rc))
 
