@@ -88,6 +88,8 @@ Options:
   -h, --help            show this help message and exit
   --servers=SERVERS     comma separated list of host:port (default
                         localhost:2181)
+  --cluster=CLUSTER     comma separated list of host:port, test as a cluster,
+                        alternative to --servers
   --timeout=TIMEOUT     session timeout in milliseconds (default 5000)
   --root_znode=ROOT_ZNODE
                         root for the test, will be created as part of test
@@ -107,6 +109,8 @@ Options:
   -v, --verbose         verbose output, include more detail
   -q, --quiet           quiet output, basically just success/failure
 </pre>
+
+The --servers options will test each server in turn while the --cluster option tests a server in the cluster chosen at random.
 
 <code>
 PYTHONPATH=lib.linux-i686-2.6 LD_LIBRARY_PATH=lib.linux-i686-2.6 ./zk-latencies.py --servers "host:port(,host:port)*"

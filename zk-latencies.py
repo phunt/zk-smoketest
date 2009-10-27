@@ -25,7 +25,9 @@ from zkclient import ZKClient, CountingWatcher, zookeeper
 usage = "usage: %prog [options]"
 parser = OptionParser(usage=usage)
 parser.add_option("", "--servers", dest="servers",
-                  default="localhost:2181", help="comma separated list of host:port (default localhost:2181)")
+                  default="localhost:2181", help="comma separated list of host:port (default localhost:2181), test each in turn")
+parser.add_option("", "--cluster", dest="cluster",
+                  default=None, help="comma separated list of host:port, test as a cluster, alternative to --servers")
 parser.add_option("", "--timeout", dest="timeout", type="int",
                   default=5000, help="session timeout in milliseconds (default 5000)")
 parser.add_option("", "--root_znode", dest="root_znode",
@@ -261,14 +263,17 @@ def asynchronous_latency_test(s, data):
 
 if __name__ == '__main__':
     data = options.znode_size * "x"
-    servers = options.servers.split(",")
+    if options.cluster:
+        servers = [options.cluster]
+    else:
+        servers = options.servers.split(",")
 
     # create all the sessions first to ensure that all servers are
     # at least available & quorum has been formed. otw this will 
     # fail right away (before we start creating nodes)
     sessions = []
     # create one session to each of the servers in the ensemble
-    for i, server in enumerate(servers):
+    for server in servers:
         sessions.append(ZKClient(server, options.timeout))
 
     # ensure root_znode doesn't exist
