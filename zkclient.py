@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import zookeeper, time, datetime, threading
+import zookeeper, time, threading
 
 DEFAULT_TIMEOUT = 30000
 
@@ -37,7 +37,7 @@ class ZKClient(object):
         if not options.quiet: print("Connecting to %s" % (servers))
         start = time.time()
         self.handle = zookeeper.init(servers, self.connection_watcher, timeout)
-        self.conn_cv.wait()
+        self.conn_cv.wait(timeout/1000)
         self.conn_cv.release()
 
         if not self.connected:

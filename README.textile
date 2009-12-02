@@ -45,6 +45,8 @@ Options:
   -q, --quiet        quiet output, basically just success/failure
 </pre>
 
+The exit code is 0 on success, non-0 exit code on failure.
+
 Verbose output includes timing information for some critical operations (connection establishment, creating/deleting nodes, etc...).
 
 <code>
