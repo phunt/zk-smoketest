@@ -1,0 +1,22 @@
+2010-04-16 23:12:52,393:11931(0xb77a86c0):ZOO_INFO@log_env@545: Client environment:zookeeper.version=zookeeper C client 3.3.0
+2010-04-16 23:12:52,393:11931(0xb77a86c0):ZOO_INFO@log_env@549: Client environment:host.name=irayan-laptop
+2010-04-16 23:12:52,393:11931(0xb77a86c0):ZOO_INFO@log_env@557: Client environment:os.name=Linux
+2010-04-16 23:12:52,393:11931(0xb77a86c0):ZOO_INFO@log_env@558: Client environment:os.arch=2.6.31-20-generic
+2010-04-16 23:12:52,393:11931(0xb77a86c0):ZOO_INFO@log_env@559: Client environment:os.version=#58-Ubuntu SMP Fri Mar 12 05:23:09 UTC 2010
+2010-04-16 23:12:52,393:11931(0xb77a86c0):ZOO_INFO@log_env@567: Client environment:user.name=irayan
+2010-04-16 23:12:52,394:11931(0xb77a86c0):ZOO_INFO@log_env@577: Client environment:user.home=/home/irayan
+2010-04-16 23:12:52,394:11931(0xb77a86c0):ZOO_INFO@log_env@589: Client environment:user.dir=/home/irayan/mona/zk-priv-smoke/zk-smoketest
+2010-04-16 23:12:52,394:11931(0xb77a86c0):ZOO_INFO@zookeeper_init@613: Initiating client connection, host=localhost:2181 sessionTimeout=5000 watcher=0x76c110 sessionId=0 sessionPasswd=<null> context=0x970cdf0 flags=0
+2010-04-16 23:12:52,395:11931(0xb765cb70):ZOO_INFO@check_events@1448: initiated connection to server [127.0.0.1:2181]
+2010-04-16 23:12:53,657:11931(0xb765cb70):ZOO_INFO@check_events@1493: connected to server [127.0.0.1:2181] with sessionId=0x127f562bd570028
+2010-04-16 23:12:53,675:11931(0xb77a86c0):ZOO_INFO@log_env@545: Client environment:zookeeper.version=zookeeper C client 3.3.0
+2010-04-16 23:12:53,675:11931(0xb77a86c0):ZOO_INFO@log_env@549: Client environment:host.name=irayan-laptop
+2010-04-16 23:12:53,675:11931(0xb77a86c0):ZOO_INFO@log_env@557: Client environment:os.name=Linux
+2010-04-16 23:12:53,675:11931(0xb77a86c0):ZOO_INFO@log_env@558: Client environment:os.arch=2.6.31-20-generic
+2010-04-16 23:12:53,675:11931(0xb77a86c0):ZOO_INFO@log_env@559: Client environment:os.version=#58-Ubuntu SMP Fri Mar 12 05:23:09 UTC 2010
+2010-04-16 23:12:53,675:11931(0xb77a86c0):ZOO_INFO@log_env@567: Client environment:user.name=irayan
+2010-04-16 23:12:53,675:11931(0xb77a86c0):ZOO_INFO@log_env@577: Client environment:user.home=/home/irayan
+2010-04-16 23:12:53,675:11931(0xb77a86c0):ZOO_INFO@log_env@589: Client environment:user.dir=/home/irayan/mona/zk-priv-smoke/zk-smoketest
+2010-04-16 23:12:53,676:11931(0xb77a86c0):ZOO_INFO@zookeeper_init@613: Initiating client connection, host=localhost:2182 sessionTimeout=5000 watcher=0x76c110 sessionId=0 sessionPasswd=<null> context=0x979a3f8 flags=0
+2010-04-16 23:12:53,676:11931(0xb665ab70):ZOO_INFO@check_events@1448: initiated connection to server [127.0.0.1:2182]
+2010-04-16 23:12:53,733:11931(0xb665ab70):ZOO_INFO@check_events@1493: connected to server [127.0.0.1:2182] with sessionId=0x227f536bbfd002d

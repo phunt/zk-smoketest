@@ -282,7 +282,7 @@ if __name__ == '__main__':
         if not options.force:
             raise SmokeError("Node %s already exists!" % (options.root_znode))
 
-        children = sessions[i].get_children(options.root_znode)
+        children = sessions[0].get_children(options.root_znode)
         for child in children:
             sessions[0].delete("%s/%s" % (options.root_znode, child))
     else:
