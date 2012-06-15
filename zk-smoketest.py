@@ -25,9 +25,9 @@ from zkclient import ZKClient, SequentialCountingWatcher, zookeeper
 usage = "usage: %prog [options]"
 parser = OptionParser(usage=usage)
 parser.add_option("", "--servers", dest="servers",
-                  default="localhost:2181", help="comma separated list of host:port (default localhost:2181)")
+                  default="localhost:2181", help="comma separated list of host:port (default %default)")
 parser.add_option("", "--timeout", dest="timeout", type="int",
-                  default=5000, help="session timeout in milliseconds (default 5000)")
+                  default=5000, help="session timeout in milliseconds (default %default)")
 parser.add_option("-v", "--verbose",
                   action="store_true", dest="verbose", default=False,
                   help="verbose output, include more detail")
