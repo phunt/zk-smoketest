@@ -28,6 +28,9 @@ parser.add_option("", "--servers", dest="servers",
                   default="localhost:2181", help="comma separated list of host:port (default localhost:2181), test each in turn")
 parser.add_option("", "--cluster", dest="cluster",
                   default=None, help="comma separated list of host:port, test as a cluster, alternative to --servers")
+parser.add_option("", "--config",
+                  dest="configfile", default=None,
+                  help="zookeeper configuration file to lookup cluster from")
 parser.add_option("", "--timeout", dest="timeout", type="int",
                   default=5000, help="session timeout in milliseconds (default 5000)")
 parser.add_option("", "--root_znode", dest="root_znode",
@@ -261,12 +264,25 @@ def asynchronous_latency_test(s, data):
                "notif   %7d           watches" % (options.watch_multiple * options.znode_count),
                (options.watch_multiple * options.znode_count))
 
+def read_zk_config(filename):
+    with open(filename) as f:
+        config = dict(tuple(line.rstrip().split('=', 1)) for line in f if line.rstrip())
+        return config
+
+def get_zk_servers(filename):
+    if options.cluster:
+        return [options.cluster]
+    elif filename:
+        config = read_zk_config(options.configfile)
+        client_port = config['clientPort']
+        return [",".join("%s:%s" % (v.split(':', 1)[0], client_port)
+                        for k, v in config.items() if k.startswith('server.'))]
+    else:
+        return options.servers.split(",")
+
 if __name__ == '__main__':
     data = options.znode_size * "x"
-    if options.cluster:
-        servers = [options.cluster]
-    else:
-        servers = options.servers.split(",")
+    servers = get_zk_servers(options.configfile)
 
     # create all the sessions first to ensure that all servers are
     # at least available & quorum has been formed. otw this will 

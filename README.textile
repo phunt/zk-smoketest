@@ -38,11 +38,12 @@ h3. Usage
 Usage: zk-smoketest.py [options]
 
 Options:
-  -h, --help         show this help message and exit
-  --servers=SERVERS  comma separated list of host:port (default localhost:2181)
-  --timeout=TIMEOUT  session timeout in milliseconds (default 5000)
-  -v, --verbose      verbose output, include more detail
-  -q, --quiet        quiet output, basically just success/failure
+  -h, --help           show this help message and exit
+  --servers=SERVERS    comma separated list of host:port (default localhost:2181)
+  --config=CONFIGFILE  zookeeper configuration file to lookup servers from
+  --timeout=TIMEOUT    session timeout in milliseconds (default 5000)
+  -v, --verbose        verbose output, include more detail
+  -q, --quiet          quiet output, basically just success/failure
 </pre>
 
 The exit code is 0 on success, non-0 exit code on failure.
@@ -66,6 +67,12 @@ Say you have a ZooKeeper ensemble with 5 servers (host1,host2,host3,host4,host5,
 
 <code>
 PYTHONPATH=lib.linux-i686-2.6 LD_LIBRARY_PATH=lib.linux-i686-2.6 ./zk-smoketest.py --servers "host1:2181,host2:2181,host3:2181,host4:2181,host5:2181"
+</code>
+
+or, for a ZK-style configuration file:
+
+<code>
+PYTHONPATH=lib.linux-i686-2.6 LD_LIBRARY_PATH=lib.linux-i686-2.6 ./zk-smoketest.py --config zk.conf
 </code>
 
 h2. zk-latencies.py
@@ -92,6 +99,7 @@ Options:
                         localhost:2181)
   --cluster=CLUSTER     comma separated list of host:port, test as a cluster,
                         alternative to --servers
+  --config=CONFIGFILE   zookeeper configuration file to lookup servers from
   --timeout=TIMEOUT     session timeout in milliseconds (default 5000)
   --root_znode=ROOT_ZNODE
                         root for the test, will be created as part of test
@@ -131,6 +139,12 @@ Say you have a ZooKeeper ensemble with 5 servers (host1,host2,host3,host4,host5,
 
 <code>
  PYTHONPATH=lib.linux-i686-2.6 LD_LIBRARY_PATH=lib.linux-i686-2.6 ./zk-latencies.py --servers "host1:2181,host2:2181,host3:2181,host4:2181,host5:2181" --znode_count=100 --znode_size=100 --synchronous
+</code>
+
+or, for a ZK-style configuration file:
+
+<code>
+PYTHONPATH=lib.linux-i686-2.6 LD_LIBRARY_PATH=lib.linux-i686-2.6 ./zk-latencies.py --config zk.conf --znode_count=100 --znode_size=100 --synchronous
 </code>
 
 Result:

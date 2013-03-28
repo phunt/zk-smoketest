@@ -26,6 +26,9 @@ usage = "usage: %prog [options]"
 parser = OptionParser(usage=usage)
 parser.add_option("", "--servers", dest="servers",
                   default="localhost:2181", help="comma separated list of host:port (default localhost:2181)")
+parser.add_option("", "--config",
+                  dest="configfile", default=None,
+                  help="zookeeper configuration file to lookup servers from")
 parser.add_option("", "--timeout", dest="timeout", type="int",
                   default=5000, help="session timeout in milliseconds (default 5000)")
 parser.add_option("-v", "--verbose",
@@ -48,8 +51,22 @@ class SmokeError(Exception):
         return repr(self.value)
 
 
+def read_zk_config(filename):
+    with open(filename) as f:
+        config = dict(tuple(line.rstrip().split('=', 1)) for line in f if line.rstrip())
+        return config
+
+def get_zk_servers(filename):
+    if filename:
+        config = read_zk_config(options.configfile)
+        client_port = config['clientPort']
+        return ["%s:%s" % (v.split(':', 1)[0], client_port)
+                        for k, v in config.items() if k.startswith('server.')]
+    else:
+        return options.servers.split(",")
+
 if __name__ == '__main__':
-    servers = options.servers.split(",")
+    servers = get_zk_servers(options.configfile)
 
     # create all the sessions first to ensure that all servers are
     # at least available & quorum has been formed. otw this will 
