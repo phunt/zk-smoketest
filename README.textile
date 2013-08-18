@@ -54,7 +54,7 @@ Verbose output includes timing information for some critical operations (connect
 PYTHONPATH=lib.linux-i686-2.6 LD_LIBRARY_PATH=lib.linux-i686-2.6 ./zk-smoketest.py --servers "host:port(,host:port)*"
 </code>
 
-*Note*: you may need to compile the zookeeper python binding yourself, this project includes only 32bit linux binaries. Additionally, the smoketest scripts rely on some changes to the zkpython binding that are not yet released, so if you do compile yourself you will need to compile zkpython from the Apache "ZooKeeper SVN trunk":http://zookeeper.apache.org/svn.html (this should be addressed as soon as ZooKeeper 3.3.0 is released).
+*Note*: you may need to compile the zookeeper python binding yourself, this project includes only 32/64-bit Linux binaries. Additionally, the smoketest scripts rely on some changes to the zkpython binding that are not yet released, so if you do compile yourself you will need to compile zkpython from the Apache "ZooKeeper SVN trunk":http://zookeeper.apache.org/svn.html (this should be addressed as soon as ZooKeeper 3.3.0 is released).
 
 On success the last line of output will be "Smoke test successful", otw an exception will be raised.
 
