@@ -126,7 +126,7 @@ The --servers options will test each server in turn while the --cluster option t
 PYTHONPATH=lib.linux-i686-2.6 LD_LIBRARY_PATH=lib.linux-i686-2.6 ./zk-latencies.py --servers "host:port(,host:port)*"
 </code>
 
-*Note*: you may need to compile the zookeeper python binding yourself, this project includes only 32bit linux binaries. Additionally, the scripts rely on some changes to the zkpython binding that are not yet released, so if you do compile yourself you will need to compile zkpython from the Apache "ZooKeeper SVN trunk":http://zookeeper.apache.org/svn.html (this should be addressed as soon as ZooKeeper 3.3.0 is released).
+*Note*: you may need to compile the zookeeper python binding yourself, even though this project includes both 32bit and 64bit linux binaries. Additionally, the scripts rely on some changes to the zkpython binding that are not yet released, so if you do compile yourself you will need to compile zkpython from the Apache "ZooKeeper SVN trunk":http://zookeeper.apache.org/svn.html (this should be addressed as soon as ZooKeeper 3.3.0 is released).
 
 On success the last line of output will be "Latency test complete", otw an exception will be raised.
 
