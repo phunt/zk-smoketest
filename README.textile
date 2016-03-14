@@ -20,6 +20,13 @@ h2. License
 
 This project is licensed under the Apache License Version 2.0
 
+h2. Requirements to run without binaries
+
+<code>apt-get install python-dev</code>
+<code>pip install zkpython</code>
+<code>apt-get install libzookeeper-mt-dev</code>
+<code>pip install zkpython</code>
+
 h2. zk-smoketest.py
 
 This tool uses the ZooKeeper python binding to exercise the server. In general the script does the following:
