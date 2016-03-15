@@ -12,7 +12,7 @@ I've recently added a new zk-latencies.py client, which tests latencies of vario
 
 h3. What's Apache ZooKeeper?
 
-From the "official site":http://hadoop.apache.org/zookeeper/: "ZooKeeper is a high-performance coordination service for distributed applications."
+From the "official site":http://zookeeper.apache.org: "ZooKeeper is a high-performance coordination service for distributed applications."
 
 It exposes common services - such as naming, configuration management, synchronization, and group services - in a simple interface so you don't have to write them from scratch. You can use it off-the-shelf to implement consensus, group management, leader election, and presence protocols.
 
@@ -21,6 +21,8 @@ h2. License
 This project is licensed under the Apache License Version 2.0
 
 h2. Requirements to run without binaries
+
+The examples below (PYTHONPATH/LD_LIBRARY_PATH) use the included ZooKeeper client c libraries. Modern distributions often include these as part of their packaging. Alternately you can use the following instead:
 
 <code>apt-get install python-dev</code>
 <code>apt-get install libzookeeper-mt-dev</code>
