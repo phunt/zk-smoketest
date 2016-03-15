@@ -23,7 +23,6 @@ This project is licensed under the Apache License Version 2.0
 h2. Requirements to run without binaries
 
 <code>apt-get install python-dev</code>
-<code>pip install zkpython</code>
 <code>apt-get install libzookeeper-mt-dev</code>
 <code>pip install zkpython</code>
 
