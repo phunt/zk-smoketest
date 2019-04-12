@@ -175,3 +175,11 @@ deleted 100 ephemeral znodes in 128 ms (1.286640 ms/op 777.218080/sec)
 .... more ....
 Latency test complete
 </pre>
+
+h2. Running Under Docker
+
+*Docker Official Images: "ZooKeeper":https://hub.docker.com/_/zookeeper/
+
+
+
+
