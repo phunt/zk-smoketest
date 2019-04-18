@@ -175,3 +175,21 @@ deleted 100 ephemeral znodes in 128 ms (1.286640 ms/op 777.218080/sec)
 .... more ....
 Latency test complete
 </pre>
+
+h2. Running Under Docker
+
+*Docker Official Images:* "ZooKeeper":https://hub.docker.com/_/zookeeper/
+
+<pre>
+# Start a quorum of 3 ZooKeeper instances
+> docker stack deploy -c docker/stack.yml zookeeper
+
+# Build the smoke test image
+> docker build --tag=zk-smoketest docker
+
+# Run the smoke test against the quorum
+> docker run --network="host" zk-smoketest:latest
+
+# Stop the ZooKeeper quorum
+> docker stack rm zookeeper
+</pre>
