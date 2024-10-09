@@ -89,8 +89,8 @@ class ZKClient(object):
     def get_children(self, path, watcher=None):
         return zookeeper.get_children(self.handle, path, watcher)
 
-    def async(self, path = "/"):
-        return zookeeper.async(self.handle, path)
+    def async_(self, path = "/"):
+        return getattr(zookeeper, 'async')(self.handle, path)
 
     def acreate(self, path, callback, data="", flags=0, acl=[ZOO_OPEN_ACL_UNSAFE]):
         result = zookeeper.acreate(self.handle, path, data, acl, flags, callback)
